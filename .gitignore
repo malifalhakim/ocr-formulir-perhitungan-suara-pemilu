@@ -1,1 +1,5 @@
-*.jpg
+# Ignore all jpg files in subdirectories
+**/*.jpg
+
+# Exclude the root jpg files from being ignored
+!/*.jpg
