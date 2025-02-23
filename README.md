@@ -1,58 +1,68 @@
-### Web App Repository : [HERE](https://github.com/malifalhakim/sistem-perhitungan-suara-otomatis)
+# Automated Vote Counting System
 
-# Penjelasan
+This repository contains the code and datasets used for an automated vote counting system. It includes raw datasets, annotations, image processing scripts, and OCR model training/inference using PaddleOCR.
 
-### Folder RawDataset
+## Repository Structure
 
-Folder `RawDataset` berisi dataset awal yang masih belum diproses. Didalamnya juga terdapat label dan sample submission yang diberikan.
+### RawDataset
+- **Description:** Contains the original, unprocessed dataset.
+- **Contents:** Raw images, provided labels, and a sample submission file.
 
-### Folder AnnotationV1
+### AnnotationV1
+- **Description:** Contains the first set of annotations for each image used for cropping.
+- **Example Cropping Result:**
+  ![alt text](TPS_001_2.jpg)
 
-Folder ini berisi anotasi dari setiap gambar pada dataset untuk melakukan _cropping_ pada gambar. Berikut adalah contoh hasil _cropping_-nya:
+### AnnotationV2
+- **Description:** Contains an alternative version of annotations for each image.
+- **Example Cropping Result:**
+  ![alt text](TPS_001_1.jpg)
 
-![alt text](TPS_001_2.jpg)
+### Image Processing
+- **Description:** Contains Python scripts for bird’s-eye view image processing and image augmentation.
+- **Structure:**
+  - **train/test folders:** Each includes an `images` folder (source images from the RawDataset) and a `labels` folder (annotations for cropping).
+  - **Output:** Cropped images are saved in `train_result` and `test_result`.
+  - **Augmentation:** Contains an `augmentation` folder for images to be augmented using `augmentation.py`. Augmented images are saved in `augmentation_result`.
 
-### Folder AnnotationV2
+### DatasetV1
+- **Description:** Contains the preprocessed data after cropping and augmentation.
+- **Contents:** Cropped and augmented images, a label file, and a notebook for adjusting labels to match the dataset.
 
-Folder ini berisi anotasi dari setiap gambar dengan versi yang berbeda. Berikut adalah contoh hasil cropping dari anotasi ini:
+### Dataset V2
+- **Description:** Contains preprocessed data produced solely by `image_processing.py`.
+- **Contents:** A label file and a notebook to adjust labels according to the dataset.
 
-![alt text](TPS_001_1.jpg)
-
-### Folder Image Processing
-
-Folder ini berisi kode python untuk melakukan image processing bird view dan image augmentation. Didalamnya terdapat folder `train` dan `test` yang mana di setiap folder tersebut terdapat folder `images` dan `labels`. Folder `images` berisi gambar dari `RawDataset` yang ingin di-_crop_ dan Folder `labels` berisi anotasi yang ingin digunakan untuk melakukan _crop_. Dan hasil dari _cropping_ akan keluar di folder `train_result` dan `test_result`.
-
-Folder ini juga berisi folder `augmentation` yang dapat diisi dengan gambar yang ingin di augmentasi menggunakan `augmentation.py`. Hasil dari augmentasi akan disimpan di folder `augmentation_result`.
-
-### Folder DatasetV1
-
-Folder ini berisi hasil preprocessing yang telah dilakukan menggunakan `image_processing.py` dan `augmentation.py`. Dimana raw dataset dilakukan _cropping_ dan augmentasi. Terdapat juga file label dan notebook untuk menyesuaikan label sesuai dataset
-
-### Folder Dataset V2
-
-Folder ini berisih hasil preprocessing yang telah dilakukan menggunakan `image_processing.py`. Terdapat juga file label dan notebook untuk menyesuaikan label sesuai dataset
-
-### Folder PaddleOCR
-
-Folder ini merupakan library untuk melatih model OCR.
-Berikut detail mengenai library ini : https://github.com/PaddlePaddle/PaddleOCR
-
-Training dapat dilakukan dengan memindahkan isi dari dataset ke folder `Dataset` pada PaddleOCR. Lalu s20 % data `Train` dipindahkan ke `Eval`.Juga terdapat notebook untuk menyesuaikan label sesuai dengan format dari PaddleOCR. Training dapat dimulai dengan menjalankan :
-
-```
-python tools/train.py -c configs/rec/PP-OCRv3/en_PP-OCRv3_rec.yml -o Global.checkpoints=./output/v3_en_mobile/latest
-```
-
-pada command prompt.
-
-Inferensi dapat dijalankan dengan menjalankan :
-
-```
-python tools/infer_rec.py -c configs/rec/PP-OCRv3/en_PP-OCRv3_rec.yml -o Global.pretrained_model=./output/v3_en_mobile/{nama_model, misal latest}  Global.infer_img=./Dataset/Test
-```
-
-Output akan dihasilkan pada folder `output/rec`.
+### PaddleOCR
+- **Description:** Contains the library and scripts for training an OCR model using PaddleOCR.
+- **More Information:** [PaddleOCR GitHub](https://github.com/PaddlePaddle/PaddleOCR)
+- **Training Instructions:**
+  1. Move the dataset contents into the `Dataset` folder in PaddleOCR.
+  2. Transfer 20% of the `Train` data to the `Eval` folder.
+  3. Use the provided notebook to adjust labels according to PaddleOCR's format.
+  4. Start training with:
+     ```bash
+     python tools/train.py -c configs/rec/PP-OCRv3/en_PP-OCRv3_rec.yml -o Global.checkpoints=./output/v3_en_mobile/latest
+     ```
+- **Inference Instructions:**
+  1. Run the inference command:
+     ```bash
+     python tools/infer_rec.py -c configs/rec/PP-OCRv3/en_PP-OCRv3_rec.yml -o Global.pretrained_model=./output/v3_en_mobile/{model_name, e.g. latest} Global.infer_img=./Dataset/Test
+     ```
+  2. The inference output is saved in the `output/rec` folder.
 
 ### Predict Percentage
+- **Description:** Contains the `percentage.ipynb` notebook used to calculate the valid vote percentage from prediction results.
+- **Methodology:** 
+  - Combines outputs from two prediction models.
+  - Selects the prediction with the highest confidence score.
+- **Exceptions:** 
+  - For TPS 606, 648, and 700, the prediction from the first model is retained due to potential image misinterpretations (e.g., two circles in one column or filling errors).
+  - TPS 700, having 5 columns and being unique in the dataset, is particularly challenging for the second model since it was not trained on similar data.
 
-Pada folder ini dilakukan perhitungan persentase suara sah, dimana terdapat file `percentage.ipynb` untuk mengolah hasil prediksi. Prediksi yang digunakan sebagai hasil akhir adalah gabungan dari 2 prediksi model yang telah dibuat. Dimana prediksi yang diambil adalah prediksi dengan _confidence score_ tertinggi. Terdapat pengecualian untuk beberapa TPS, yaitu TPS 606, 648, 700. TPS tersebut akan tetap menggunakan prediksi model pertama karena pada TPS tersebut gambarnya dapat memberikan misleading seperti ada dua bulatan pada satu kolom dan terdapat kesalahan pengisian. Pada TPS 700, kolom yang diberikan ada 5 dan merupakan satu-satunya pada dataset sehingga model 2 akan lebih kesulitan dikarenakan tidak pernah dilatih dengan data seperti ini.
+## Usage
+- **Preprocessing:** Run the scripts in the **Image Processing** folder to crop and augment your images.
+- **OCR Training & Inference:** Follow the instructions in the **PaddleOCR** folder.
+- **Vote Percentage Calculation:** Use the `percentage.ipynb` notebook in the **Predict Percentage** folder to compute final predictions.
+
+*For more details and updates, please refer to the repository contents and respective documentation files.*
